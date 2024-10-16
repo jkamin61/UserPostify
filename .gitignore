@@ -1,0 +1,70 @@
+# Node.js dependencies
+/node_modules
+/npm-debug.log
+/yarn-error.log
+/pnpm-debug.log
+
+# Production build files
+/dist
+/build
+
+# Environment variables
+.env
+.env.*    # Ignores other environment files like .env.production, .env.development, etc.
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IntelliJ project files
+.idea/
+*.xml.idea/
+*.iml
+*.xml
+out/
+
+# Debugging and OS-related files
+.DS_Store
+Thumbs.db
+.vscode/       # Visual Studio Code settings, in case someone uses it alongside IntelliJ
+
+# Testing and coverage reports
+/coverage
+/jest-cache
+/jest-config
+
+# TypeScript cache
+/*.tsbuildinfo
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Temporary files
+tmp/
+temp/
+
+# Optional lock files
+package-lock.json
+yarn.lock
+.pnpm-lock.yaml
+
+# Ignore compiled JavaScript files
+*.js
+*.js.map
+
+# Ignore compiled JavaScript files from specific directories (e.g., 'dist')
+dist/
+build/
+
+# Ignore TypeScript declaration files if not needed
+*.d.ts
