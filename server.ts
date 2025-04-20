@@ -5,7 +5,7 @@ import logger from './utils/logger';
 
 dotenv.config();
 
-const portEnv: string = process.env.PORT || '3000';
+const portEnv: string = process.env.PORT || '4000';
 const PORT: number = parseInt(portEnv, 10);
 const HOSTNAME: string = process.env.HOSTNAME || 'localhost';
 

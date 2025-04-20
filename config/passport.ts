@@ -1,4 +1,4 @@
-import passport from 'config/passport';
+import passport from 'passport';
 import passportJWT, { ExtractJwt, StrategyOptions } from 'passport-jwt';
 import User from '../models/user';
 import dotenv from 'dotenv';
