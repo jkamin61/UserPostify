@@ -8,6 +8,7 @@ import './config/passport';
 
 import healthRouter from './routes/healthRoutes';
 import userRouter from './routes/userRoutes';
+import passport from 'passport';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const app: Application = express();
 
 const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
 
+app.use(passport.initialize());
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());

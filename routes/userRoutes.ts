@@ -3,13 +3,11 @@ import jwt from 'jsonwebtoken';
 import auth from '../middlewares/auth';
 import logger from '../utils/logger';
 import { STATUS_CODE } from '../utils/statusCode';
-import { IUser } from '../models/user';
-
-const router: Router = express.Router();
+import { IUser } from '../models/userRepository';
+import UserRepository from '../models/userRepository';
 import dotenv from 'dotenv';
 import {
     authenticateUser,
-    findUserByEmail,
     registerUser,
     setToken,
     updateUser,
@@ -25,6 +23,7 @@ import {
 dotenv.config();
 
 const secret: string = process.env.JWT_SECRET || 'default_secret';
+const router: Router = express.Router();
 
 router.post(
     '/register',
@@ -33,7 +32,7 @@ router.post(
             logger.info(`POST /user/register request received from ${req.ip}`);
 
             const { email, password, firstName, lastName } = req.body;
-            const user: IUser | null = await findUserByEmail(email);
+            const user: IUser | null = await UserRepository.findByEmail(email);
 
             if (user) {
                 logger.info('User already exists');
@@ -69,9 +68,8 @@ router.post(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             logger.info(`POST /user/login request received from ${req.ip}`);
-
             const { email, password } = req.body;
-            const user: IUser | null = await findUserByEmail(email);
+            const user: IUser | null = await UserRepository.findByEmail(email);
             if (!user) {
                 res.status(STATUS_CODE.NOT_FOUND).json({
                     status: 'Not found',

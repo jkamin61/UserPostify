@@ -3,9 +3,9 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import logger from '../utils/logger';
-import { IUser } from '../models/user';
+import { IUser } from '../models/userRepository';
 import pool from '../storage/db';
-import { QueryResult } from 'pg';
+import UserRepository from '../models/userRepository';
 
 const MIN_PASSWORD_LENGTH: number = 8;
 const HASH_ROUNDS: number = 10;
@@ -20,33 +20,6 @@ async function getUsersData(): Promise<IUser[]> {
 function validateEmail(email: string): boolean {
     const re: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
-}
-
-export async function findUserByEmail(email: string): Promise<IUser | null> {
-    if (!email || !validateEmail(email)) {
-        throw new Error('Invalid email format');
-    }
-    try {
-        const result: QueryResult<IUser> = await pool.query(
-            'SELECT * from users WHERE email=$1',
-            [email]
-        );
-        if (result.rows.length === 0) {
-            logger.info(`User with email: ${email} not found.`);
-            return null;
-        }
-        const user: IUser = result.rows[0];
-        logger.info('User found:', user.email);
-        return user;
-    } catch (err: any) {
-        if (err.code === 'ENOENT') {
-            throw new Error('Users file not found');
-        } else if (err instanceof SyntaxError) {
-            throw new Error('Error parsing JSON data');
-        } else {
-            throw new Error('An unexpected error occurred: ' + err.message);
-        }
-    }
 }
 
 export async function registerUser(
@@ -77,17 +50,7 @@ export async function registerUser(
             lastName: lastName,
             token: '',
         };
-        await pool.query(
-            'INSERT INTO users (user_id, email, password, first_name, last_name, token) VALUES ($1, $2, $3, $4, $5, $6)',
-            [
-                user.userId,
-                user.email,
-                user.password,
-                user.firstName,
-                user.lastName,
-                user.token,
-            ]
-        );
+        await UserRepository.create(user);
         return user;
     } catch (err) {
         logger.error('Error registering user:', err);
@@ -100,7 +63,7 @@ export async function authenticateUser(
     password: string
 ): Promise<IUser | null> {
     try {
-        const user: IUser | null = await findUserByEmail(email);
+        const user: IUser | null = await UserRepository.findByEmail(email);
         if (!user) {
             throw new Error('User does not exist');
         }
@@ -122,7 +85,7 @@ export async function authenticateUser(
 
 export async function setToken(email: string, token: string): Promise<void> {
     try {
-        const user: IUser | null = await findUserByEmail(email);
+        const user: IUser | null = await UserRepository.findByEmail(email);
         if (!user) {
             throw new Error('User does not exist');
         }

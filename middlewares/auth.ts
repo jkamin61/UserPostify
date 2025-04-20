@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Request, Response, NextFunction } from 'express';
-import { IUser } from '../models/user';
+import { IUser } from '../models/userRepository';
 
 const auth = (req: Request, res: Response, next: NextFunction): void => {
     passport.authenticate('jwt', { session: false }, (err: any, user: any) => {
