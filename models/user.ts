@@ -6,10 +6,10 @@ const usersFilePath: string = path.join(process.cwd(), 'storage', 'users.json');
 export interface IUser {
     userId: string;
     email: string;
-    token: string;
     password: string;
     firstName: string;
     lastName: string;
+    token: string;
 }
 
 const loadUsers = (): IUser[] => {
