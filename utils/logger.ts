@@ -1,5 +1,6 @@
 import process from 'process';
 import winston from 'winston';
+import path from 'path';
 
 interface customLevels {
     levels: {
@@ -43,13 +44,20 @@ const logger = winston.createLogger({
     ),
     transports: [
         new winston.transports.Console(),
-        new winston.transports.File({ filename: 'error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'combined.log' }),
+        new winston.transports.File({
+            filename: path.join(process.cwd(), 'logs', 'error.log'),
+            level: 'error',
+        }),
+        new winston.transports.File({
+            filename: path.join(process.cwd(), 'logs', 'combined.log'),
+        }),
     ],
 });
 
 logger.exceptions.handle(
-    new winston.transports.File({ filename: 'exceptions.log' })
+    new winston.transports.File({
+        filename: path.join(process.cwd(), 'logs', 'exceptions.log'),
+    })
 );
 
 process.on('unhandledRejection', (reason, promise): void => {

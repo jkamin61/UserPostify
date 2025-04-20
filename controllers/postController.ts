@@ -6,7 +6,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger';
 
-const postsPath = path.join(__dirname, '../storage/posts.json');
+const postsPath = path.join(process.cwd(), 'storage', 'posts.json');
 
 interface Post {
     postId: string;
@@ -16,7 +16,7 @@ interface Post {
     authorId: string;
 }
 
-interface UpdatePostPayload {
+export interface UpdatePostPayload {
     title?: string;
     description?: string;
 }

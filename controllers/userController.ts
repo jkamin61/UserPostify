@@ -8,7 +8,7 @@ import { IUser } from '../models/user';
 const MIN_PASSWORD_LENGTH: number = 8;
 const HASH_ROUNDS: number = 10;
 
-const usersPath = path.join(__dirname, '../storage/users.json');
+const usersPath = path.join(process.cwd(), 'storage', 'users.json');
 
 async function getUsersData(): Promise<IUser[]> {
     const data: string = await fs.readFile(usersPath, 'utf-8');

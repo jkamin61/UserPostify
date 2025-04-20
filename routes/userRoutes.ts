@@ -19,6 +19,7 @@ import {
     deletePost,
     getUserPosts,
     updatePost,
+    UpdatePostPayload,
 } from '../controllers/postController';
 
 dotenv.config();
@@ -282,7 +283,7 @@ router.patch(
                 });
                 return;
             }
-            const updatePayload = req.body;
+            const updatePayload: UpdatePostPayload = req.body;
             const post = await updatePost(id, user.userId, updatePayload);
 
             if (!post) {

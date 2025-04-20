@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const usersFilePath: string = path.join(__dirname, '../storage/users.json');
+const usersFilePath: string = path.join(process.cwd(), 'storage', 'users.json');
 
 export interface IUser {
     userId: string;

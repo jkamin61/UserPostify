@@ -7,7 +7,7 @@
     "start": "node dist/server.js",
     "start:dev": "nodemon dist/server.js",
     "copy:storage": "cpx \"storage/**/*\" dist/storage",
-    "build": "tsc && npm run copy:storage && npm run lint && npm run prettier:check",
+    "build": "tsc && npm run lint && npm run prettier:check",
     "dev": "cross-env NODE_ENV=development nodemon --inspect dist/server.js",
     "lint": "eslint . --ext .ts,.tsx",
     "prettier:check": "prettier --check '**/*.{ts,tsx}'",
