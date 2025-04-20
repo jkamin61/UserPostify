@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import logger from '../utils/logger';
 import { IUser } from '../models/user';
+import pool from '../storage/db';
+import { QueryResult } from 'pg';
 
 const MIN_PASSWORD_LENGTH: number = 8;
 const HASH_ROUNDS: number = 10;
@@ -25,14 +27,15 @@ export async function findUserByEmail(email: string): Promise<IUser | null> {
         throw new Error('Invalid email format');
     }
     try {
-        const users: IUser[] = await getUsersData();
-        const user: IUser | undefined = users.find(
-            (user) => user.email === email
+        const result: QueryResult<IUser> = await pool.query(
+            'SELECT * from users WHERE email=$1',
+            [email]
         );
-        if (!user) {
+        if (result.rows.length === 0) {
             logger.info(`User with email: ${email} not found.`);
             return null;
         }
+        const user: IUser = result.rows[0];
         logger.info('User found:', user.email);
         return user;
     } catch (err: any) {
@@ -65,21 +68,26 @@ export async function registerUser(
     }
 
     try {
-        const users: IUser[] = await getUsersData();
-
         const hashedPassword: string = await bcrypt.hash(password, HASH_ROUNDS);
         const user: IUser = {
             userId: uuidv4(),
             email: email,
-            token: '',
             password: hashedPassword,
             firstName: firstName,
             lastName: lastName,
+            token: '',
         };
-        users.push(user);
-
-        await fs.writeFile(usersPath, JSON.stringify(users, null, 2), 'utf-8');
-
+        await pool.query(
+            'INSERT INTO users (user_id, email, password, first_name, last_name, token) VALUES ($1, $2, $3, $4, $5, $6)',
+            [
+                user.userId,
+                user.email,
+                user.password,
+                user.firstName,
+                user.lastName,
+                user.token,
+            ]
+        );
         return user;
     } catch (err) {
         logger.error('Error registering user:', err);
