@@ -122,16 +122,14 @@ export async function authenticateUser(
 
 export async function setToken(email: string, token: string): Promise<void> {
     try {
-        const users: IUser[] = await getUsersData();
-        const userIndex = users.findIndex((user) => user.email === email);
-        if (userIndex === -1) {
+        const user: IUser | null = await findUserByEmail(email);
+        if (!user) {
             throw new Error('User does not exist');
         }
-
-        users[userIndex].token = token;
-
-        await fs.writeFile(usersPath, JSON.stringify(users, null, 2), 'utf-8');
-
+        await pool.query('UPDATE users SET token = $1 WHERE email=$2', [
+            token,
+            email,
+        ]);
         logger.info(`Token for user ${email} has been updated`);
     } catch (err: any) {
         logger.error('Error setting token:', err.message);
