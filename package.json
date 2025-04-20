@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/server.js",
-    "start:dev": "nodemon dist/server.js",
+    "start:dev": "nodemon --watch src --ext ts,tsx --exec ts-node server.ts",
     "copy:storage": "cpx \"storage/**/*\" dist/storage",
     "build": "tsc && npm run lint && npm run prettier:check",
     "dev": "cross-env NODE_ENV=development nodemon --inspect dist/server.js",
