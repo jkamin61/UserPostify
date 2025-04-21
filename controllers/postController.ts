@@ -43,8 +43,12 @@ export async function createPost(
 }
 
 export async function getUserPosts(userId: string): Promise<Post[]> {
-    const posts: Post[] = await getPostsData();
-    return posts.filter((post) => post.authorId === userId);
+    const posts: Post[] = await PostRepository.getUserPosts(userId);
+    if (!posts) {
+        logger.error('User does not have any posts');
+        throw new Error('User is not registered as author of posts');
+    }
+    return posts;
 }
 
 export async function deletePost(

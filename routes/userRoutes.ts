@@ -235,7 +235,7 @@ router.get(
             }
             const posts = await getUserPosts(user.userId);
             res.json({
-                status: 'Ok',
+                status: 'OK',
                 code: STATUS_CODE.OK,
                 data: posts,
             });

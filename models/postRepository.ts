@@ -16,6 +16,15 @@ const PostRepository = {
         );
         return result.rows[0] || null;
     },
+    getUserPosts: async (userId: string): Promise<Post[]> => {
+        const result = await pool.query(
+            `SELECT *
+             FROM posts
+             WHERE author_id = $1`,
+            [userId]
+        );
+        return result.rows || null;
+    },
     create: async (post: Post) => {
         await pool.query(
             `INSERT INTO posts (post_id, title, description, created_date, author_id)
