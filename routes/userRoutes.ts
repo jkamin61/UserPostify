@@ -3,13 +3,11 @@ import jwt from 'jsonwebtoken';
 import auth from '../middlewares/auth';
 import logger from '../utils/logger';
 import { STATUS_CODE } from '../utils/statusCode';
-import { IUser } from '../models/user';
-
-const router: Router = express.Router();
+import { IUser } from '../models/userRepository';
+import UserRepository from '../models/userRepository';
 import dotenv from 'dotenv';
 import {
     authenticateUser,
-    findUserByEmail,
     registerUser,
     setToken,
     updateUser,
@@ -25,6 +23,7 @@ import {
 dotenv.config();
 
 const secret: string = process.env.JWT_SECRET || 'default_secret';
+const router: Router = express.Router();
 
 router.post(
     '/register',
@@ -33,7 +32,7 @@ router.post(
             logger.info(`POST /user/register request received from ${req.ip}`);
 
             const { email, password, firstName, lastName } = req.body;
-            const user: IUser | null = await findUserByEmail(email);
+            const user: IUser | null = await UserRepository.findByEmail(email);
 
             if (user) {
                 logger.info('User already exists');
@@ -69,9 +68,8 @@ router.post(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             logger.info(`POST /user/login request received from ${req.ip}`);
-
             const { email, password } = req.body;
-            const user: IUser | null = await findUserByEmail(email);
+            const user: IUser | null = await UserRepository.findByEmail(email);
             if (!user) {
                 res.status(STATUS_CODE.NOT_FOUND).json({
                     status: 'Not found',
@@ -135,14 +133,26 @@ router.get(
     }
 );
 
+interface UserUpdateRequest extends Request {
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+}
+
 router.patch(
     '/update',
     auth,
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    async (
+        req: UserUpdateRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
         try {
-            const { newFirstName, newLastName } = req.body;
+            const { newEmail, newPassword, newFirstName, newLastName } =
+                req.body;
 
-            if (!newFirstName && !newLastName) {
+            if (req.body.length === 0) {
                 throw new Error('Invalid number of parameters');
             }
 
@@ -159,6 +169,8 @@ router.patch(
 
             const updatedUser: IUser = await updateUser(
                 user,
+                newEmail,
+                newPassword,
                 newFirstName,
                 newLastName
             );
@@ -166,7 +178,7 @@ router.patch(
                 status: 'Success',
                 code: STATUS_CODE.OK,
                 data: updatedUser,
-                message: `New first name: ${newFirstName}, new last name: ${newLastName}`,
+                message: 'User updated successfully',
             });
         } catch (err) {
             next(err);
@@ -223,7 +235,7 @@ router.get(
             }
             const posts = await getUserPosts(user.userId);
             res.json({
-                status: 'Ok',
+                status: 'OK',
                 code: STATUS_CODE.OK,
                 data: posts,
             });
@@ -248,7 +260,7 @@ router.delete(
                 });
                 return;
             }
-            const result = await deletePost(id, user.userId);
+            const result = await deletePost(id);
             if (result) {
                 res.json({
                     status: 'Ok',
@@ -284,7 +296,7 @@ router.patch(
                 return;
             }
             const updatePayload: UpdatePostPayload = req.body;
-            const post = await updatePost(id, user.userId, updatePayload);
+            const post = await updatePost(id, updatePayload);
 
             if (!post) {
                 res.json({
