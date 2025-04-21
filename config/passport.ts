@@ -1,6 +1,6 @@
 import passport from 'passport';
 import passportJWT, { ExtractJwt, StrategyOptions } from 'passport-jwt';
-import User from '../models/user';
+import UserRepository from '../models/userRepository';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -15,8 +15,7 @@ const params: StrategyOptions = {
 passport.use(
     new passportJWT.Strategy(params, async (payload: { id: string }, done) => {
         try {
-            const users = await User.find({ userId: payload.id });
-            const user = users[0]; // Assuming find returns an array
+            const user = await UserRepository.findById(payload.id);
 
             if (!user) {
                 return done(new Error('User not found'));

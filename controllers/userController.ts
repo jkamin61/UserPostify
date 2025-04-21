@@ -1,49 +1,15 @@
-import { promises as fs } from 'node:fs';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import logger from '../utils/logger';
-import { IUser } from '../models/user';
+import UserRepository, { IUser } from '../models/userRepository';
+import pool from '../storage/db';
 
 const MIN_PASSWORD_LENGTH: number = 8;
 const HASH_ROUNDS: number = 10;
 
-const usersPath = path.join(process.cwd(), 'storage', 'users.json');
-
-async function getUsersData(): Promise<IUser[]> {
-    const data: string = await fs.readFile(usersPath, 'utf-8');
-    return JSON.parse(data);
-}
-
 function validateEmail(email: string): boolean {
     const re: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
-}
-
-export async function findUserByEmail(email: string): Promise<IUser | null> {
-    if (!email || !validateEmail(email)) {
-        throw new Error('Invalid email format');
-    }
-    try {
-        const users: IUser[] = await getUsersData();
-        const user: IUser | undefined = users.find(
-            (user) => user.email === email
-        );
-        if (!user) {
-            logger.info(`User with email: ${email} not found.`);
-            return null;
-        }
-        logger.info('User found:', user.email);
-        return user;
-    } catch (err: any) {
-        if (err.code === 'ENOENT') {
-            throw new Error('Users file not found');
-        } else if (err instanceof SyntaxError) {
-            throw new Error('Error parsing JSON data');
-        } else {
-            throw new Error('An unexpected error occurred: ' + err.message);
-        }
-    }
 }
 
 export async function registerUser(
@@ -65,21 +31,16 @@ export async function registerUser(
     }
 
     try {
-        const users: IUser[] = await getUsersData();
-
         const hashedPassword: string = await bcrypt.hash(password, HASH_ROUNDS);
         const user: IUser = {
             userId: uuidv4(),
             email: email,
-            token: '',
             password: hashedPassword,
             firstName: firstName,
             lastName: lastName,
+            token: '',
         };
-        users.push(user);
-
-        await fs.writeFile(usersPath, JSON.stringify(users, null, 2), 'utf-8');
-
+        await UserRepository.create(user);
         return user;
     } catch (err) {
         logger.error('Error registering user:', err);
@@ -92,7 +53,7 @@ export async function authenticateUser(
     password: string
 ): Promise<IUser | null> {
     try {
-        const user: IUser | null = await findUserByEmail(email);
+        const user: IUser | null = await UserRepository.findByEmail(email);
         if (!user) {
             throw new Error('User does not exist');
         }
@@ -114,16 +75,14 @@ export async function authenticateUser(
 
 export async function setToken(email: string, token: string): Promise<void> {
     try {
-        const users: IUser[] = await getUsersData();
-        const userIndex = users.findIndex((user) => user.email === email);
-        if (userIndex === -1) {
+        const user: IUser | null = await UserRepository.findByEmail(email);
+        if (!user) {
             throw new Error('User does not exist');
         }
-
-        users[userIndex].token = token;
-
-        await fs.writeFile(usersPath, JSON.stringify(users, null, 2), 'utf-8');
-
+        await pool.query('UPDATE users SET token = $1 WHERE email=$2', [
+            token,
+            email,
+        ]);
         logger.info(`Token for user ${email} has been updated`);
     } catch (err: any) {
         logger.error('Error setting token:', err.message);
@@ -133,24 +92,27 @@ export async function setToken(email: string, token: string): Promise<void> {
 
 export async function updateUser(
     user: IUser,
-    firstName: string,
-    lastName: string
+    email?: string,
+    password?: string,
+    firstName?: string,
+    lastName?: string
 ): Promise<IUser> {
     try {
-        const users: IUser[] = await getUsersData();
-        const userIndex: number = users.findIndex(
-            (users) => users.userId === user.userId
-        );
-        if (userIndex === -1) {
+        let hPassword: string | undefined = password;
+        const result = await UserRepository.findById(user.userId);
+        if (!result) {
             throw new Error('User does not exist');
         }
-
-        users[userIndex].firstName = firstName;
-        users[userIndex].lastName = lastName;
-
-        await fs.writeFile(usersPath, JSON.stringify(users, null, 2), 'utf-8');
-
-        return users[userIndex];
+        if (password) {
+            hPassword= await bcrypt.hash(password, HASH_ROUNDS);
+        }
+        return await UserRepository.update(
+            user,
+            email,
+            hPassword,
+            firstName,
+            lastName
+        );
     } catch (err: any) {
         logger.error('Error updating user,', err.message);
         throw new Error('Could not update user information');
