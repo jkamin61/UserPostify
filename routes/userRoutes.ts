@@ -133,14 +133,26 @@ router.get(
     }
 );
 
+interface UserUpdateRequest extends Request {
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+}
+
 router.patch(
     '/update',
     auth,
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    async (
+        req: UserUpdateRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
         try {
-            const { newFirstName, newLastName } = req.body;
+            const { newEmail, newPassword, newFirstName, newLastName } =
+                req.body;
 
-            if (!newFirstName && !newLastName) {
+            if (req.body.length === 0) {
                 throw new Error('Invalid number of parameters');
             }
 
@@ -157,6 +169,8 @@ router.patch(
 
             const updatedUser: IUser = await updateUser(
                 user,
+                newEmail,
+                newPassword,
                 newFirstName,
                 newLastName
             );
@@ -164,7 +178,7 @@ router.patch(
                 status: 'Success',
                 code: STATUS_CODE.OK,
                 data: updatedUser,
-                message: `New first name: ${newFirstName}, new last name: ${newLastName}`,
+                message: 'User updated successfully',
             });
         } catch (err) {
             next(err);
