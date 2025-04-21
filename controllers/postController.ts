@@ -11,11 +11,6 @@ export interface UpdatePostPayload {
     description?: string;
 }
 
-async function getPostsData(): Promise<Post[]> {
-    const data: string = await fs.readFile(postsPath, 'utf-8');
-    return JSON.parse(data);
-}
-
 export async function createPost(
     title: string,
     description: string,
@@ -51,26 +46,14 @@ export async function getUserPosts(userId: string): Promise<Post[]> {
     return posts;
 }
 
-export async function deletePost(
-    postId: string,
-    userId: string
-): Promise<boolean> {
+export async function deletePost(postId: string): Promise<boolean> {
     try {
-        const posts: Post[] = await getUserPosts(userId);
-        const postToBeDeleted: Post | undefined = posts.find(
-            (post) => post.postId === postId
-        );
-        if (!postToBeDeleted) {
-            logger.error('No post of given ID');
-            return false;
+        const result = await PostRepository.delete(postId);
+        if (!result) {
+            logger.error('Post of given ID not found');
+            throw new Error('Post not found');
         }
-        const newPosts: Post[] = posts.filter((post) => post.postId !== postId);
-        await fs.writeFile(
-            postsPath,
-            JSON.stringify(newPosts, null, 2),
-            'utf-8'
-        );
-        return true;
+        return result;
     } catch (err: any) {
         logger.error('Error while deleting post:', err);
         throw new Error(err.message);

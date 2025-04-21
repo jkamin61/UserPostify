@@ -25,7 +25,7 @@ const PostRepository = {
         );
         return result.rows || null;
     },
-    create: async (post: Post) => {
+    create: async (post: Post): Promise<void> => {
         await pool.query(
             `INSERT INTO posts (post_id, title, description, created_date, author_id)
              VALUES ($1, $2, $3, $4, $5)`,
@@ -37,6 +37,15 @@ const PostRepository = {
                 post.authorId,
             ]
         );
+    },
+    delete: async (postId: string): Promise<boolean | null> => {
+        const result = await pool.query(
+            `DELETE
+                          FROM posts
+                          WHERE post_id = $1`,
+            [postId]
+        );
+        return result.rowCount! > 0 || null;
     },
 };
 

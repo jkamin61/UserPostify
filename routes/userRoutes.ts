@@ -260,7 +260,7 @@ router.delete(
                 });
                 return;
             }
-            const result = await deletePost(id, user.userId);
+            const result = await deletePost(id);
             if (result) {
                 res.json({
                     status: 'Ok',
