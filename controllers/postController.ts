@@ -1,10 +1,6 @@
-import { promises as fs } from 'node:fs';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger';
 import PostRepository, { Post } from '../models/postRepository';
-
-const postsPath = path.join(process.cwd(), 'storage', 'posts.json');
 
 export interface UpdatePostPayload {
     title?: string;
@@ -62,30 +58,15 @@ export async function deletePost(postId: string): Promise<boolean> {
 
 export async function updatePost(
     postId: string,
-    userId: string,
     updatePayload: UpdatePostPayload
-): Promise<Post | undefined> {
+): Promise<Post | null> {
     try {
-        const posts: Post[] = await getUserPosts(userId);
-        const postToBeUpdated: Post | undefined = posts.find(
-            (post) => post.postId === postId
-        );
-
-        if (!postToBeUpdated) {
+        const result = PostRepository.update(postId, updatePayload);
+        if (!result) {
             logger.error('No post of given ID');
-            return undefined;
+            return null;
         }
-
-        if (updatePayload.title) {
-            postToBeUpdated.title = updatePayload.title;
-        }
-        if (updatePayload.description) {
-            postToBeUpdated.description = updatePayload.description;
-        }
-
-        await fs.writeFile(postsPath, JSON.stringify(posts, null, 2), 'utf-8');
-
-        return postToBeUpdated;
+        return result;
     } catch (err: any) {
         logger.error('Error while updating post:', err);
         throw new Error(err.message);

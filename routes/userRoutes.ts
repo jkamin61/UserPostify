@@ -296,7 +296,7 @@ router.patch(
                 return;
             }
             const updatePayload: UpdatePostPayload = req.body;
-            const post = await updatePost(id, user.userId, updatePayload);
+            const post = await updatePost(id, updatePayload);
 
             if (!post) {
                 res.json({

@@ -1,4 +1,5 @@
 import pool from '../storage/db';
+import { UpdatePostPayload } from '../controllers/postController';
 
 export interface Post {
     postId: string;
@@ -41,11 +42,44 @@ const PostRepository = {
     delete: async (postId: string): Promise<boolean | null> => {
         const result = await pool.query(
             `DELETE
-                          FROM posts
-                          WHERE post_id = $1`,
+             FROM posts
+             WHERE post_id = $1`,
             [postId]
         );
         return result.rowCount! > 0 || null;
+    },
+    update: async (
+        postId: string,
+        updatePayload: UpdatePostPayload
+    ): Promise<Post | null> => {
+        const updates: string[] = [];
+        const values: any[] = [];
+        let index = 1;
+
+        if (updatePayload.title) {
+            updates.push(`title = $${index++}`);
+            values.push(updatePayload.title);
+        }
+
+        if (updatePayload.description) {
+            updates.push(`description = $${index++}`);
+            values.push(updatePayload.description);
+        }
+
+        if (updates.length === 0) {
+            throw new Error('No fields to update');
+        }
+
+        const query = `
+            UPDATE posts
+            SET ${updates.join(', ')}
+            WHERE post_id = ${'$' + index}
+            RETURNING post_id AS "postId", title, description, created_date AS "createdDate", author_id AS "authorId"`;
+
+        values.push(postId);
+
+        const result = await pool.query(query, values);
+        return result.rows[0];
     },
 };
 
