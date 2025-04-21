@@ -104,7 +104,7 @@ export async function updateUser(
             throw new Error('User does not exist');
         }
         if (password) {
-            hPassword= await bcrypt.hash(password, HASH_ROUNDS);
+            hPassword = await bcrypt.hash(password, HASH_ROUNDS);
         }
         return await UserRepository.update(
             user,
