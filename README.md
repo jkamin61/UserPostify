@@ -4,11 +4,7 @@
 
 This project is a **Node.js application** utilizing **Express.js** to provide a complete RESTful API for user management
 and post creation. The application allows users to **register, log in**, and manage their profiles, as well as **create,
-view, update, and delete posts**. The authentication is handled using **JWT tokens**, and user data is stored in JSON
-files using the **fs** module and streams.
-
-Additionally, the project includes features such as **profile update notifications**, and there’s a script to back up
-user data using **piping streams**.
+view, update, and delete posts**. The authentication is handled using **JWT tokens**, and user data is stored in PostgreSQL.
 
 ---
 
@@ -26,7 +22,7 @@ user data using **piping streams**.
 - **Method**: `POST`
 - **Description**: Register a new user with `first name`, `last name`, `email`, and `password`. The password is hashed
   before being stored.
-- **Data Storage**: User data is stored in a JSON file (`storage/users.json`).
+- **Data Storage**: User data is stored in a users table.
 
 ### 3. **User Login**
 
@@ -55,7 +51,7 @@ user data using **piping streams**.
 - **URL**: `/user/post`
 - **Method**: `POST`
 - **Description**: Authenticated users can create a post with `title` and `description`. The post is stored with the
-  user's ID and creation date in the `storage/posts.json` file.
+  user's ID and creation date in the posts table.
 - **Authorization**: Requires a valid JWT token.
 
 ### 7. **View User’s Posts**
@@ -81,17 +77,10 @@ user data using **piping streams**.
   be updated.
 - **Authorization**: Requires a valid JWT token.
 
-### 10. **Backup User Data**
-
-- **Script**: `backupUserData.js`
-- **Description**: A custom script to back up user data using **streams**. This script reads from the user data file and
-  writes to a backup file using the **pipe** method for efficient data handling.
-
----
-
 ## Project Commands and Scripts
 
 ### Start the Application
 
 ```bash
-npm start
+  npm start
+```
