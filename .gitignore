@@ -59,8 +59,7 @@ yarn.lock
 .pnpm-lock.yaml
 
 # Ignore compiled JavaScript files
-*.js
-*.js.map
+build/**/*.js
 
 # Ignore compiled JavaScript files from specific directories (e.g., 'dist')
 dist/
