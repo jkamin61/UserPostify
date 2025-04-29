@@ -263,12 +263,12 @@ router.delete(
             const result = await deletePost(id);
             if (result) {
                 res.json({
-                    status: 'Ok',
+                    status: 'OK',
                     code: STATUS_CODE.OK,
                     message: `Post ${id} deleted successfully`,
                 });
             } else {
-                res.json({
+                res.status(STATUS_CODE.NOT_FOUND).json({
                     status: 'Not found',
                     code: STATUS_CODE.NOT_FOUND,
                     message: `There is no post of ID: ${id}`,
@@ -299,18 +299,62 @@ router.patch(
             const post = await updatePost(id, updatePayload);
 
             if (!post) {
-                res.json({
+                res.status(STATUS_CODE.NOT_FOUND).json({
                     status: 'Not found',
                     code: STATUS_CODE.NOT_FOUND,
                     message: `Post ID: ${id} doesn't exist or no access`,
                 });
             }
             res.json({
-                status: 'Ok',
+                status: 'OK',
                 code: STATUS_CODE.OK,
                 message: `Successfully updated post ID: ${id}`,
                 data: post,
             });
+        } catch (err) {
+            next(err);
+        }
+    }
+);
+
+router.delete(
+    '/:id',
+    auth,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params;
+
+            const user = await UserRepository.findById(id);
+            if (!user) {
+                res.status(STATUS_CODE.NOT_FOUND).json({
+                    status: 'Not found',
+                    code: STATUS_CODE.NOT_FOUND,
+                    message: `User ID: ${id} doesn't exist or no access`,
+                });
+                return;
+            }
+
+            const result = await UserRepository.delete(id);
+
+            if (result === 0) {
+                res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({
+                    status: 'Could not delete user',
+                    code: STATUS_CODE.INTERNAL_SERVER_ERROR,
+                    message: `Could not delete user ID: ${id}. No access`,
+                });
+            } else if (result === 1) {
+                res.json({
+                    status: 'User deleted successfully',
+                    code: STATUS_CODE.OK,
+                    message: `Successfully deleted user ID: ${id}.`,
+                });
+            } else {
+                res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({
+                    status: 'Critical error - more then 1 user deleted',
+                    code: STATUS_CODE.INTERNAL_SERVER_ERROR,
+                    message: 'More users then 1 was deleted. Critical error.',
+                });
+            }
         } catch (err) {
             next(err);
         }

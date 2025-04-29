@@ -72,13 +72,19 @@ const UserRepository = {
         const query = `
             UPDATE users
             SET ${updates.join(', ')}
-            WHERE user_id = ${'$' + index}
-            RETURNING user_id as "userId", email, password, first_name as "firstName", last_name as "lastName"`;
+            WHERE user_id = ${'$' + index} RETURNING user_id as "userId", email, password, first_name as "firstName", last_name as "lastName"`;
 
         values.push(user.userId);
 
         const result = await pool.query(query, values);
         return result.rows[0];
+    },
+    delete: async (id: string) => {
+        const result = await pool.query(
+            'DELETE FROM users WHERE user_id = $1',
+            [id]
+        );
+        return result.rowCount;
     },
 };
 
