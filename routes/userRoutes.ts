@@ -19,6 +19,7 @@ import {
     updatePost,
     UpdatePostPayload,
 } from '../controllers/postController';
+import PostRepository from '../models/postRepository';
 
 dotenv.config();
 
@@ -234,6 +235,29 @@ router.get(
                 return;
             }
             const posts = await getUserPosts(user.userId);
+            res.json({
+                status: 'OK',
+                code: STATUS_CODE.OK,
+                data: posts,
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
+);
+
+router.get(
+    '/all-posts',
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const posts = await PostRepository.getAllPosts();
+            if (!posts || posts.length === 0) {
+                res.status(STATUS_CODE.NOT_FOUND).json({
+                    status: 'Not found',
+                    code: STATUS_CODE.NOT_FOUND,
+                    message: 'No posts found',
+                });
+            }
             res.json({
                 status: 'OK',
                 code: STATUS_CODE.OK,

@@ -26,6 +26,13 @@ const PostRepository = {
         );
         return result.rows || null;
     },
+    getAllPosts: async (): Promise<Post[]> => {
+        const result = await pool.query(
+            `SELECT *
+             FROM posts`
+        );
+        return result.rows || null;
+    },
     create: async (post: Post): Promise<void> => {
         await pool.query(
             `INSERT INTO posts (post_id, title, description, created_date, author_id)
@@ -73,8 +80,7 @@ const PostRepository = {
         const query = `
             UPDATE posts
             SET ${updates.join(', ')}
-            WHERE post_id = ${'$' + index}
-            RETURNING post_id AS "postId", title, description, created_date AS "createdDate", author_id AS "authorId"`;
+            WHERE post_id = ${'$' + index} RETURNING post_id AS "postId", title, description, created_date AS "createdDate", author_id AS "authorId"`;
 
         values.push(postId);
 
