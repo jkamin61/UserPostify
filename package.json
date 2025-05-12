@@ -11,7 +11,7 @@
     "dev": "cross-env NODE_ENV=development nodemon --inspect dist/server.js",
     "lint": "eslint . --ext .ts,.tsx",
     "prettier:check": "prettier --check '**/*.{ts,tsx}'",
-    "format": "prettier --write '**/*.{ts,tsx}",
+    "format": "prettier --write '**/*.{ts,tsx}'",
     "prepare": "husky install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
